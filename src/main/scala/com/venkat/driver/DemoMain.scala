@@ -59,6 +59,51 @@ object DemoMain {
 
     df1.union(df2).distinct().show(100,false)
 
+    val empLoc = "/user/training/surender_hadoop/employee/"
+    val skillsLoc = "/user/training/surender_hadoop/skills/skills.txt"
+
+    val empSchema = StructType(
+      Array(
+        StructField("emp_id", StringType, true),
+        StructField("emp_name", StringType, true)
+      )
+    )
+
+    val skillsSchema = StructType(
+      Array(
+        StructField("id", StringType, true),
+        StructField("skills", StringType, true)
+      )
+    )
+
+    val empRDD = spark.sparkContext.textFile(empLoc)
+    val skillsRDD = spark.sparkContext.textFile(skillsLoc)
+
+    val empRowRDD = empRDD.map(rec => rec.split("\\|")).map(arr => org.apache.spark.sql.Row(arr: _*))
+    val skillsRowRDD = skillsRDD.map(rec => rec.split(",")).map(arr => org.apache.spark.sql.Row(arr: _*))
+
+    val empDF = spark.createDataFrame(empRowRDD, empSchema)
+    val skillsDF = spark.createDataFrame(skillsRowRDD, skillsSchema)
+
+    empDF.createOrReplaceTempView("employees")
+    skillsDF.createOrReplaceTempView("skills")
+
+    val joinedDF1 = spark.sql(""" select * from employees inner join skills on(employees.emp_id = skills.id)""")
+
+    val joinedDF2 = spark.sql(""" select emp_id, emp_name, skills from employees inner join skills on(employees.emp_id = skills.id)""")
+
+    val joinedDF3 = spark.sql(""" select emp_id, emp_name, skills from employees inner join skills on(employees.emp_id = skills.id) where skills in ('BIGDATA','ORACLE')""")
+
+    val joinedDF4 = spark.sql(""" select * from employees left outer join skills on(employees.emp_id = skills.id) """)
+
+    val joinedDF5 = spark.sql(""" select * from employees right outer join skills on(employees.emp_id = skills.id) """)
+
+    val joinedDF6 = spark.sql(""" select * from employees full outer join skills on(employees.emp_id = skills.id) """)
+
+    val joinedDF7 = spark.sql(""" select * from employees left anti join skills on(employees.emp_id = skills.id) """)
+
+    val joinedDF8 = spark.sql(""" select emp_id,emp_name from employees left outer join skills on(employees.emp_id = skills.id) where skills.id is null """)
+
   }
 
 }
