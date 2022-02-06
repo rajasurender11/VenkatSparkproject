@@ -117,6 +117,23 @@ object DemoMain {
 
     val agg5DF = spark.sql("""select atm_id, split(atm_id, ":")[0] as bank,  split(atm_id, ":")[1] as id from surender_hive.atm_trans""")
 
+
+    val windows1DF = spark.sql(
+      """select account_no,atm_id,trans_dt,amount,status,
+        |rank() over( partition by account_no  order by trans_dt desc ) as rank_number,
+        |dense_rank() over( partition by account_no  order by trans_dt desc )  as dense_rank_number,
+        |row_number() over(partition by account_no order by trans_dt  desc ) as row_numberr
+        |from surender_hive.atm_trans""".stripMargin)
+
+    val windows2DF = spark.sql(
+      """select account_no,atm_id,trans_dt,amount,status,rank_number from
+        |(select account_no,atm_id,trans_dt,amount,status,
+        |rank() over( partition by account_no  order by trans_dt) as rank_number,
+        |dense_rank() over( partition by account_no  order by trans_dt) as dense_rank_number,
+        |row_number() over(partition by account_no order by trans_dt) as row_numberr
+        |from surender_hive.atm_trans)a
+        |where rank_number  = 1
+        |""".stripMargin)
   }
 
 }
