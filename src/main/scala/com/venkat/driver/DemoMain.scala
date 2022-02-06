@@ -104,6 +104,19 @@ object DemoMain {
 
     val joinedDF8 = spark.sql(""" select emp_id,emp_name from employees left outer join skills on(employees.emp_id = skills.id) where skills.id is null """)
 
+    val joinedDF9 = spark.sql(""" select a.emp_id, emp_name, skills from surender_hive.employee a inner join surender_hive.skills b on(a.emp_id = b.emp_id) where skills in ('BIGDATA','ORACLE')""")
+
+    val agg1DF = spark.sql("""select account_no ,count(*) as trans_cnt from surender_hive.atm_trans group by account_no""")
+
+    val agg2DF = spark.sql("""select account_no , status, count(*) as trans_cnt from surender_hive.atm_trans group by account_no,status""")
+
+    val agg3DF = spark.sql("""select account_no ,sum(amount) as tot_amt from surender_hive.atm_trans where status = "S"  group by account_no having tot_amt > 5000""")
+
+    val agg4DF = spark.sql("""select status, case when status = 'S' then "SUCCESS" else "DECLINED" end as descc, mycount from
+                             |(select status, count(*) as mycount  from surender_hive.atm_trans group by status)a""".stripMargin)
+
+    val agg5DF = spark.sql("""select atm_id, split(atm_id, ":")[0] as bank,  split(atm_id, ":")[1] as id from surender_hive.atm_trans""")
+
   }
 
 }
