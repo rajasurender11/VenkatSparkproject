@@ -2,7 +2,7 @@ package com.venkat.driver
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, lit, lower}
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.types.{StringType, StructField, StructType,IntegerType}
 
 object DemoMain {
 
@@ -120,9 +120,9 @@ object DemoMain {
 
     val windows1DF = spark.sql(
       """select account_no,atm_id,trans_dt,amount,status,
-        |rank() over( partition by account_no  order by trans_dt desc ) as rank_number,
-        |dense_rank() over( partition by account_no  order by trans_dt desc )  as dense_rank_number,
-        |row_number() over(partition by account_no order by trans_dt  desc ) as row_numberr
+        |rank() over( partition by account_no  order by trans_dt) as rank_number,
+        |dense_rank() over( partition by account_no  order by trans_dt) as dense_rank_number,
+        |row_number() over(partition by account_no order by trans_dt) as row_numberr
         |from surender_hive.atm_trans""".stripMargin)
 
     val windows2DF = spark.sql(
@@ -134,6 +134,37 @@ object DemoMain {
         |from surender_hive.atm_trans)a
         |where rank_number  = 1
         |""".stripMargin)
+
+    val schema1 = StructType(
+      Array(
+        StructField("num", IntegerType, true)
+      )
+    )
+
+    val hdfsLoc = "/user/training/surender_hadoop/input_files/numbers.txt"
+
+    val rdd1 = spark.sparkContext.textFile(hdfsLoc)
+
+    val flatRDD1 = rdd1.flatMap(elem => elem.split(",")).map(elem => Seq(elem.toInt))
+
+    val rowRDD1 = flatRDD1.map(arr => org.apache.spark.sql.Row(arr:_*))
+
+    val df = spark.createDataFrame(rowRDD1,schema1)
+
+    //avg of each student
+
+    val myArray1 = Array("surender|1;2;2", "raja|4;2;2")
+
+    val rdd12 = spark.sparkContext.parallelize(myArray1)
+
+    val splitRDD1 = rdd12.map(elem => {
+      val arr = elem.split("\\|")
+      (arr(0),arr(1).split(";").map(elem => elem.toInt).toList)
+    }
+    )
+
+    splitRDD1.map(elem => (elem._1,elem._2.sum/elem._2.size)).collect
+
   }
 
 }
