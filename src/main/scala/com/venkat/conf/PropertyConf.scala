@@ -6,5 +6,6 @@ object PropertyConf {
   val accountsProfileLoc = baseLoc + "\\" + "accounts_profile.csv"
   val atmTransLoc = baseLoc + "\\" + "atm_trans.txt"
   val ordersLoc = baseLoc + "\\" + "orders.txt"
+  val accountsProfileColList = Seq("account_no", "mobile_no", "customer_name")
 
 }
