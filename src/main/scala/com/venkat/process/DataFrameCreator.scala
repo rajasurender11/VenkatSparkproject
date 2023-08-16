@@ -5,10 +5,12 @@ import spark.sqlContext.implicits._
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.Row
 
+
 class DataFrameCreator {
 
 
 def createDataFrames(): Unit = {
+  import spark.implicits._
 
   //collection of tuples, then it is  easy to create direct DF
   val seqData = Seq(
@@ -16,7 +18,8 @@ def createDataFrames(): Unit = {
     ("101","raja",3000),
     ("102","kumar",4000),
     ("103","kumar",4000),
-    ("103","mmmmmmmmmmmmmmmmmmmmmmmmmmmmaaaaaaaaa",4000)
+    ("103","mmmmmmmmmmmmmmmmmmmmmmmmmmmmaaaaaaaaa",4000),
+    (None,"aa",90)
   )
   val df1 = seqData.toDF("emp_id","emp_name","salary")
   //df1.show()
