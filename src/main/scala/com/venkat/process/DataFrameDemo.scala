@@ -3,7 +3,7 @@ import com.venkat.conf.PropertyConf._
 import com.venkat.conf.SparkConf._
 import com.venkat.schema.AllSchemas
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.{col, lit, when}
+import org.apache.spark.sql.functions.{avg, col, concat, lit, max, sum, when,count}
 
 
 class DataFrameDemo {
@@ -27,16 +27,24 @@ class DataFrameDemo {
 
     //doShow(sqlDF)
     accountsProfileDF.filter(col("bank_name") === "HDFC" )
-    doShow(accountsProfileUpdatedDF)
+    //doShow(accountsProfileUpdatedDF)
     //accountsProfileDF.select("customer_name", "bank_name").show()
-    val selectedDF = accountsProfileDF.select(accountsProfileColList.map(elem => col(elem)):_*)
-    selectedDF.show()
+    val selectedDF = accountsProfileDF.
+      select(accountsProfileColList.map(elem => col(elem)):_*)
+    //selectedDF.show()
 
     val updatedDF = accountsProfileDF.withColumnRenamed("mobile_no", "contact_no")
-    accountsProfileDF.printSchema()
-    updatedDF.printSchema()
+    //accountsProfileDF.printSchema()
+    //updatedDF.printSchema()
 
-    val addedDF = accountsProfileDF.withColumn("contact_no",col("mobile_no"))
+    val addedDF = accountsProfileDF
+      .withColumn("concat_column",
+        concat(
+          col("bank_name"),
+          lit(" "),
+          col("customer_name")
+        )
+      )
     addedDF.show()
 
     addedDF.drop("mobile_no")
@@ -60,14 +68,26 @@ class DataFrameDemo {
                                   .when(col("bank_name").isin(List("CITI"):_*),"BNG")
                                   .otherwise("MUM")
                  )
-        cityUpdatedDF.show()
+        //cityUpdatedDF.show()
+
+    accountsProfileDF.groupBy("bank_name","customer_name")
+      .agg(
+        count("account_no").as("total_emps"),
+        sum("mobile_no").as("sum_mob")
+      )
+      .show(false)
+
+
+
+    accountsProfileDF.groupBy(col("bank_name"))
+      .sum("mobile_no")
   }
 
 
 
   def doShow(df:DataFrame):Unit = {
 
-    df.show(10,false)
+    //df.show(10,false)
 
   }
 
